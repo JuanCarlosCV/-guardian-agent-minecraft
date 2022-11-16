@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "mineflayer": "^4.5.1",
+    "mineflayer-armor-manager": "^1.4.2",
+    "mineflayer-navigate": "^0.0.10",
+    "mineflayer-pathfinder": "^2.4.1",
+    "mineflayer-pvp": "^1.3.2",
+    "pvp": "^1.0.0",
+    "vec3": "^0.1.7"
+  }
+}
