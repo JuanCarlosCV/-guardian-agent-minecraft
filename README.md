@@ -14,4 +14,4 @@ npm install mineflayer
 
 Use npm install to get the dependencies (the API)
 
-#Wiki
+# Documentation
