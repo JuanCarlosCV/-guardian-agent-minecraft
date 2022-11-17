@@ -1,6 +1,7 @@
 const mineflayer = require('mineflayer')
 const pvp = require('mineflayer-pvp').plugin
 const { pathfinder, Movements, goals} = require('mineflayer-pathfinder')
+
 const armorManager = require('mineflayer-armor-manager')
 const navigatePlugin = require('mineflayer-navigate')(mineflayer);
 const GoalFollow = goals.GoalFollow
@@ -9,11 +10,16 @@ const { GoalXZ, GoalY } = require('mineflayer-pathfinder').goals
 /*
 Sistemas Inteligentes
 Juan Carlos Cabrera Vega
+A01702008
 */
+var vec3 = mineflayer.vec3;
+var v = require('vec3');
+var v1 = v(-95, -61, 61);
 const options = {
     host: 'localhost', // Change this to the ip you want.
-    port: 50590, // Change this to the port you want.
-    username: 'Benjamin'
+    port: 60894, // Change this to the port you want.
+    username: 'AgentIA',
+    'spawnPoint': v1,
   }
 
   const bot = mineflayer.createBot(options)
@@ -21,27 +27,33 @@ const options = {
   bot.loadPlugin(armorManager)
   bot.loadPlugin(pathfinder)
   navigatePlugin(bot);
-  function lookAtNearestPlayer () {
-    const playerFilter = (entity) => entity.type === 'player'
-    const playerEntity = bot.nearestEntity(playerFilter)
+
+  bot.on('kicked', console.log)
+bot.on('error', console.log)
+  // function lookAtNearestPlayer () {
+  //   const playerFilter = (entity) => entity.type === 'player'
+  //   const playerEntity = bot.nearestEntity(playerFilter)
     
-    if (!playerEntity) return
+  //   if (!playerEntity) return
     
-    const pos = playerEntity.position.offset(0, playerEntity.height, 0)
-    bot.lookAt(pos)
-  }
+  //   const pos = playerEntity.position.offset(0, playerEntity.height, 0)
+  //   bot.lookAt(pos)
+  // }
 
   bot.on('login', () => {
     console.log('\n===== Server Minecraft: Begin Agent =====\n');
+    bot.chat('Hello player');
+    Commands();
   });
 
   bot.on('end', (reason) => {
     console.log('\n--- Agent quit the server ---\n');
     process.exit(1);
   });
+  
   bot.on('health', () => {
     let health = bot.health/2; bot.chat('<Health: ' + health.toFixed(1) + ' hearts>');
-});
+  });
 
 
 bot.on('playerCollect', (collector, itemDrop) => {
@@ -111,7 +123,23 @@ bot.on('playerCollect', (collector, itemDrop) => {
       bot.pvp.attack(entity)
     }
   })
-  
+  function Commands() {
+    bot.chat("!!! list    -> list commands")
+    bot.chat('guard       -> protect area')
+    bot.chat('fight me    -> fight with player')
+
+    bot.chat('arrive      -> follow player')
+    bot.chat('follow        -> follow player walk')
+   // bot.chat('find [arg]  -> print blocks finds');
+    bot.chat('goto [ x y z] or [x y] or [z] > move player to specified location')
+    bot.chat('searchBlock   -> find block for agent')
+    bot.chat('------Changes mode game ---------')
+    bot.chat('peaceful    -> changes mode game a pacific')
+    bot.chat('normal      -> changes mode game a normal ')
+    bot.chat('stop        -> stop following')
+    bot.chat('fin  -> end agent')
+}
+
   bot.on('chat', (username, message) => {
    // const player = bot.players[username]
    // bot.chat(player.entity.position.x)
@@ -136,18 +164,18 @@ bot.on('playerCollect', (collector, itemDrop) => {
       }
   
       bot.chat('Prepare to fight!')
-      bot.pvp.attack(player.entity)
+      bot.pvp.attack(player.entity) // agent flight with me
     }
   
     if (message === 'stop') {
-      bot.chat('I will no longer guard this area.')
+      bot.chat('I stay in this area')
       stopGuarding()
     }
     if(message ==='follow'){
-        const playerCI = bot.players['agent']
+        const playerCI = bot.players[username]
 
         if (!playerCI || !playerCI.entity) {
-            bot.chat("I can't see CI!")
+            bot.chat(`I can t see ${username}`)
             return
         }
     
@@ -160,8 +188,13 @@ bot.on('playerCollect', (collector, itemDrop) => {
         const goal = new GoalFollow(playerCI.entity, 3)
         bot.pathfinder.setGoal(goal, true)
     }
-    if(message ==='come'){
+    if(message ==='arrive'){
         const target = bot.players[username].entity;
+        bot.chat(`${username}`)
+        if (!target) {
+            bot.chat(`I can't see ! ${username}` )
+            return
+        }
         bot.navigate.to(target.position);
     }
       if (message.startsWith('goto')) {
@@ -184,31 +217,34 @@ bot.on('playerCollect', (collector, itemDrop) => {
           bot.pathfinder.setGoal(new GoalY(y))
         }
     }
-    if( message ==='findGold'){
+    if( message ==='searchBlock'){
         const mcData = require('minecraft-data')(bot.version) //access data minecraft
         const movements = new Movements(bot, mcData)
         movements.scafoldingBlocks = []
         bot.pathfinder.setMovements(movements)
         //console.log(mcData.blocksByName.stone)
-        const emeraldBlock = bot.findBlock({
+        const Block = bot.findBlock({
             matching: mcData.blocksByName.gold_block.id,
             maxDistance: 32
         })
     
-        if (!emeraldBlock) {
+        if (!Block) {
             bot.chat("I can't see any stone blocks!")
             return
         }
     
-        const x = emeraldBlock.position.x
-        const y = emeraldBlock.position.y + 1
-        const z = emeraldBlock.position.z
+        const x = Block.position.x
+        const y = Block.position.y + 1
+        const z = Block.position.z
         const goal = new GoalBlock(x, y, z)
         bot.pathfinder.setGoal(goal)
     
     }
 
     if (message.startsWith('find')) {
+      /**
+       * Function for find blocks specific por player
+       */
         const name = message.split(' ')[1]
         if (bot.registry.blocksByName[name] === undefined) {
           bot.chat(`${name} is not a block name`)
@@ -220,11 +256,25 @@ bot.on('playerCollect', (collector, itemDrop) => {
         const blocks = bot.findBlocks({ matching: ids, maxDistance: 128, count: 10 })
         const time = (performance.now() - startTime).toFixed(2)
     
-        bot.chat(`YEAH!!I found ${blocks.length} ${name} blocks in ${time} ms`)
+        bot.chat(`YEAH!!I found ${blocks.length} ${name} blocks : ID { ${ids} }`)
       }
       if(message === 'peaceful'){
+        //change gamemode a peaceful
         bot.chat('/difficulty peaceful')
         bot.chat('/time set day')
       }
-   
+
+      if(message === 'normal'){
+        //change gamemode a normal
+        bot.chat('/difficulty normal')
+        bot.chat('/time set night')
+      }
+      if(message === 'list'){
+        Commands()
+      }
+      if(message === 'fin'){
+        bot.chat('Bye myfriend')
+        bot.end()
+      }
+      
   })

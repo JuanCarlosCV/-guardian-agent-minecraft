@@ -2,15 +2,15 @@ const mineflayer = require('mineflayer')
 
 
 const options = {
-    host: '192.168.1.74', // Change this to the ip you want.
-    port: 61689, // Change this to the port you want.
-    username: 'Agent Benjamin'
+    host: 'localhost', // Change this to the ip you want.
+    port: 60464, // Change this to the port you want.
+    username: 'AgentBenjamin'
   }
 
 
 
   function lookAtNearestPlayer () {
-    const playerFilter = (entity) => entity.type === 'player'
+    const playerFilter = (entity) => entity.type === 'Carlos'
     const playerEntity = bot.nearestEntity(playerFilter)
     
     if (!playerEntity) return
