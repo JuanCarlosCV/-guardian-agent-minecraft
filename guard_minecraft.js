@@ -17,7 +17,7 @@ var v = require('vec3');
 var v1 = v(-95, -61, 61);
 const options = {
     host: 'localhost', // Change this to the ip you want.
-    port: 60894, // Change this to the port you want.
+    port: 58769, // Change this to the port you want.
     username: 'AgentIA',
     'spawnPoint': v1,
   }
@@ -215,6 +215,8 @@ bot.on('playerCollect', (collector, itemDrop) => {
           const y = parseInt(cmd[1], 10)
   
           bot.pathfinder.setGoal(new GoalY(y))
+        }else{
+          bot.chat("Invalid argument")
         }
     }
     if( message ==='searchBlock'){
